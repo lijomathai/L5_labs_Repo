@@ -4,7 +4,7 @@ all:
     CVP_cluster:
       vars:
           ansible_user: arista
-          ansible_password: aristacnyc
+          ansible_password: aristaXXXX
           ansible_connection: httpapi
           ansible_httpapi_use_ssl: True
           ansible_httpapi_validate_certs: False
@@ -17,7 +17,7 @@ all:
     FABRIC:
       vars:
         ansible_user: arista
-        ansible_ssh_pass: aristacnyc  # If using SSH keys, this can be removed
+        ansible_ssh_pass: aristaXXXX # If using SSH keys, this can be removed
 # Use this section if you want to perform testing via the eAPI
         ansible_connection: httpapi
         ansible_httpapi_use_ssl: True
@@ -32,24 +32,41 @@ all:
         # ansible_become: yes
         # ansible_become_method: enable
       children:
-        SPINES:
-          vars:
-            type: spine
-          hosts:
-            spine1:
-            spine2:
-            spine3:
-        LEAFS:
-          vars: 
-            type: l3leaf
-          hosts:
-            leaf1:
-            leaf2:
-            leaf3:
-            leaf4:
+        DC1:
+          children:
+            DC1_SPINES:
+              vars:
+                type: spine
+              hosts:
+                spine1:
+                spine2:
+            DC1_LEAFS:
+              vars: 
+                type: l3leaf
+              hosts:
+                leaf1:
+                leaf2:
+                borderleaf1:
+        DC2:
+          children:
+            DC2_SPINES:
+              vars:
+                type: spine
+              hosts:
+                spine3:
+                spine4:
+            DC2_LEAFS:
+              vars: 
+                type: l3leaf
+              hosts:
+                leaf3:
+                leaf4:
+                borderleaf2:
     EVPN_SERVICES:
       children:
-        LEAFS:
+        DC1_LEAFS:
+        DC2_LEAFS:
     ENDPOINT_CONNECT:
       children:
-        LEAFS:
+        DC1_LEAFS:
+        DC2_LEAFS:
