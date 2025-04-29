@@ -89,6 +89,12 @@ router_bgp:
     neighbors:
     - ip_address: 10.255.251.4
       peer_group: MLAG-IPv4-UNDERLAY-PEER
+    - ip_address: 10.1.5.254
+      remote_as: '1'
+    address_family_ipv4:
+      neighbors:
+      - ip_address: 10.1.5.254
+        activate: true
   vlans:
   - id: 10
     tenant: ACME
@@ -96,6 +102,14 @@ router_bgp:
     route_targets:
       both:
       - 10010:10010
+    redistribute_routes:
+    - learned
+  - id: 20
+    tenant: ACME
+    rd: 192.168.101.4:10020
+    route_targets:
+      both:
+      - 10020:10020
     redistribute_routes:
     - learned
 static_routes:
@@ -147,6 +161,9 @@ vlans:
 - id: 10
   name: DMZ
   tenant: ACME
+- id: 20
+  name: Internal
+  tenant: ACME
 - id: 3009
   name: MLAG_iBGP_VRF_A
   trunk_groups:
@@ -170,6 +187,12 @@ vlan_interfaces:
   shutdown: false
   ip_address_virtual: 10.1.10.1/24
   vrf: VRF_A
+- name: Vlan20
+  tenant: ACME
+  description: Internal
+  shutdown: false
+  ip_address_virtual: 10.1.20.1/24
+  vrf: VRF_A
 - name: Vlan3009
   tenant: ACME
   type: underlay_peering
@@ -187,6 +210,14 @@ port_channel_interfaces:
   trunk_groups:
   - LEAF_PEER_L3
   - MLAG
+- name: Port-Channel7
+  description: host2_PortChannel host2
+  type: switched
+  shutdown: false
+  mode: access
+  vlans: '20'
+  spanning_tree_portfast: edge
+  mlag: 7
 ethernet_interfaces:
 - name: Ethernet1
   peer: leaf3
@@ -235,6 +266,22 @@ ethernet_interfaces:
   mtu: 1550
   type: routed
   ip_address: 192.168.103.23/31
+- name: Ethernet9
+  peer_type: l3_interface
+  ip_address: 10.1.5.1/24
+  shutdown: false
+  type: routed
+  vrf: VRF_A
+- name: Ethernet7
+  peer: host2
+  peer_interface: Ethernet2
+  peer_type: server
+  description: host2_Ethernet2
+  shutdown: false
+  type: port-channel-member
+  channel_group:
+    id: 7
+    mode: active
 mlag_configuration:
   domain_id: mlag2
   local_interface: Vlan4094
@@ -290,6 +337,8 @@ vxlan_interface:
       vlans:
       - id: 10
         vni: 10010
+      - id: 20
+        vni: 10020
       vrfs:
       - name: VRF_A
         vni: 10
